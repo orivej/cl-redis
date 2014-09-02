@@ -22,7 +22,7 @@ If *ECHOP-P* is not NIL, write that string to *ECHO-STREAM*, too."
 If *ECHOP-P* is not NIL, write that string to *ECHO-STREAM*, too."
   (let ((soc (flex:flexi-stream-stream (conn-stream *connection*))))
     (when *echo-p* (format *echo-stream* " > ~A~%" string))
-    (write-sequence (babel:string-to-octets string :encoding :UTF-8) soc)
+    (write-sequence (flex:string-to-octets string :external-format +utf8+) soc)
     (write-byte 13 soc)
     (write-byte 10 soc)))
 
@@ -79,7 +79,7 @@ CMD is the command name (a string or a symbol), and ARGS are its arguments
     (format-redis-number #\* (length all-args))
     (dolist (arg all-args)
       (let ((arg (ensure-string arg)))
-        (format-redis-number #\$ (babel:string-size-in-octets arg :encoding :UTF-8))
+        (format-redis-number #\$ (flex:octet-length arg :external-format +UTF8+))
         (format-redis-string arg)))))
 
 
@@ -185,7 +185,7 @@ server with the first character removed."
            (read-byte ,in)               ; #\Return
            (read-byte ,in)               ; #\Linefeed
            ,(if decode
-                `(let ((,str (babel:octets-to-string ,bytes :encoding :UTF-8)))
+                `(let ((,str (flex:octets-to-string ,bytes :external-format +utf8+)))
                    (when *echo-p* (format *echo-stream* "<  ~A~%" ,str))
                    (unless (string= "nil" ,str)
                      (if ,post-processing
